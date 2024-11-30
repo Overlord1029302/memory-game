@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Memory Game</title>
+    <style>
+        body {
+            font-family: "Arial", sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(2, 100px);
+            gap: 10px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+        .tile {
+            width: 100px;
+            height: 100px;
+            background-color: grey;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .active {
+            background-color: lightgreen;
+        }
+        #score {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Memory Game</h1>
+    <div id="score">
+        <p>Current Score: <span id="current-score">0</span></p>
+        <p>Best Score: <span id="best-score">0</span></p>
+    </div>
+    <div id="game-board">
+        <div class="tile" id="tile-1"></div>
+        <div class="tile" id="tile-2"></div>
+        <div class="tile" id="tile-3"></div>
+        <div class="tile" id="tile-4"></div>
+    </div>
+    <script>
+        const tiles = document.querySelectorAll('.tile');
+        const currentScoreElement = document.getElementById('current-score');
+        const bestScoreElement = document.getElementById('best-score');
+
+        let sequence = [];
+        let userSequence = [];
+        let currentScore = 0;
+        let bestScore = 0;
+        let isPlayerTurn = false; // Flag to manage player input
+
+        // Get a random tile's ID
+        function getRandomTile() {
+            const tile = tiles[Math.floor(Math.random() * tiles.length)];
+            return tile.id;
+        }
+
+        // Play the sequence
+        function playSequence() {
+            let index = 0;
+            userSequence = [];
+            isPlayerTurn = false; // Disable user input during playback
+
+            const interval = setInterval(() => {
+                if (index >= sequence.length) {
+                    clearInterval(interval);
+                    isPlayerTurn = true; // Enable user input after playback
+                    return;
+                }
+
+                const tile = document.getElementById(sequence[index]);
+                tile.classList.add('active');
+                setTimeout(() => tile.classList.remove('active'), 500); // Highlight tile for 500ms
+                index++;
+            }, 800); // Wait 800ms between tiles
+        }
+
+        // Start the next round
+        function nextRound() {
+            sequence.push(getRandomTile()); // Add a random tile to the sequence
+            setTimeout(playSequence, 1000); // Wait 1 second before playing the sequence
+        }
+
+        // Reset the game
+        function resetGame() {
+            alert(`Game Over! Your score was ${currentScore}. Try again!`);
+            currentScore = 0;
+            sequence = [];
+            updateScores();
+            setTimeout(nextRound, 1000); // Restart the game after 1 second
+        }
+
+        // Update scores
+        function updateScores() {
+            currentScoreElement.textContent = currentScore;
+            if (currentScore > bestScore) {
+                bestScore = currentScore;
+                bestScoreElement.textContent = bestScore;
+            }
+        }
+
+        // Add click listeners to tiles
+        tiles.forEach((tile) => {
+            tile.addEventListener('click', () => {
+                if (!isPlayerTurn) return; // Ignore clicks during playback
+
+                // Register the clicked tile ID
+                userSequence.push(tile.id);
+
+                // Compare the current user input to the sequence
+                const currentIndex = userSequence.length - 1;
+                if (userSequence[currentIndex] !== sequence[currentIndex]) {
+                    resetGame();
+                    return;
+                }
+
+                // If the user completes the sequence, start the next round
+                if (userSequence.length === sequence.length) {
+                    currentScore++;
+                    updateScores();
+                    isPlayerTurn = false; // Temporarily disable input
+                    setTimeout(nextRound, 1000); // Start the next round after 1 second
+                }
+            });
+        });
+
+        // Start the game
+        nextRound();
+    </script>
+</body>
+</html>
