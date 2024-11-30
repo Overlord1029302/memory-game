@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Memory Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Memory Game</title>
     <style>
         body {
             font-family: "Arial", sans-serif;
@@ -13,24 +15,24 @@
         h1 {
             margin-top: 20px;
         }
-        #game-board {
-            display: grid;
-            grid-template-columns: repeat(2, 100px);
-            gap: 10px;
-            justify-content: center;
-            margin: 20px auto;
+        #number-display {
+            font-size: 2rem;
+            margin: 20px 0;
+            height: 50px;
         }
-        .tile {
-            width: 100px;
-            height: 100px;
-            background-color: grey;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-            transition: background-color 0.3s;
+        #input-container {
+            margin: 20px 0;
         }
-        .active {
-            background-color: lightgreen;
+        input {
+            font-size: 1rem;
+            padding: 5px;
+            width: 200px;
+            text-align: center;
+        }
+        button {
+            font-size: 1rem;
+            padding: 5px 15px;
+            margin-top: 10px;
         }
         #score {
             margin-top: 20px;
@@ -38,70 +40,59 @@
     </style>
 </head>
 <body>
-    <h1>Memory Game</h1>
+    <h1>Number Memory Game</h1>
     <div id="score">
         <p>Current Score: <span id="current-score">0</span></p>
         <p>Best Score: <span id="best-score">0</span></p>
     </div>
-    <div id="game-board">
-        <div class="tile" id="tile-1"></div>
-        <div class="tile" id="tile-2"></div>
-        <div class="tile" id="tile-3"></div>
-        <div class="tile" id="tile-4"></div>
+    <div id="number-display"></div>
+    <div id="input-container">
+        <input type="text" id="user-input" placeholder="Type the number" disabled />
+        <br>
+        <button id="submit-btn" disabled>Submit</button>
     </div>
     <script>
-        const tiles = document.querySelectorAll('.tile');
+        const numberDisplay = document.getElementById('number-display');
+        const userInput = document.getElementById('user-input');
+        const submitBtn = document.getElementById('submit-btn');
         const currentScoreElement = document.getElementById('current-score');
         const bestScoreElement = document.getElementById('best-score');
 
-        let sequence = [];
-        let userSequence = [];
+        let sequence = "";
         let currentScore = 0;
         let bestScore = 0;
-        let isPlayerTurn = false; // Flag to manage player input
 
-        // Get a random tile's ID
-        function getRandomTile() {
-            const tile = tiles[Math.floor(Math.random() * tiles.length)];
-            return tile.id;
+        function getRandomDigit() {
+            return Math.floor(Math.random() * 10);
         }
 
-        // Play the sequence
-        function playSequence() {
-            let index = 0;
-            userSequence = [];
-            isPlayerTurn = false; // Disable user input during playback
+        function displayNumber() {
+            numberDisplay.textContent = sequence;
+            userInput.disabled = true;
+            submitBtn.disabled = true;
 
-            const interval = setInterval(() => {
-                if (index >= sequence.length) {
-                    clearInterval(interval);
-                    isPlayerTurn = true; // Enable user input after playback
-                    return;
-                }
-
-                const tile = document.getElementById(sequence[index]);
-                tile.classList.add('active');
-                setTimeout(() => tile.classList.remove('active'), 500); // Highlight tile for 500ms
-                index++;
-            }, 800); // Wait 800ms between tiles
+            setTimeout(() => {
+                numberDisplay.textContent = "";
+                userInput.disabled = false;
+                submitBtn.disabled = false;
+                userInput.value = "";
+                userInput.focus();
+            }, 5000); // Display the number for 5 seconds
         }
 
-        // Start the next round
         function nextRound() {
-            sequence.push(getRandomTile()); // Add a random tile to the sequence
-            setTimeout(playSequence, 1000); // Wait 1 second before playing the sequence
+            sequence += getRandomDigit(); // Add one random digit to the sequence
+            displayNumber();
         }
 
-        // Reset the game
         function resetGame() {
-            alert(`Game Over! Your score was ${currentScore}. Try again!`);
+            alert(`Game Over! Your score was ${currentScore}.`);
             currentScore = 0;
-            sequence = [];
+            sequence = "";
             updateScores();
-            setTimeout(nextRound, 1000); // Restart the game after 1 second
+            nextRound();
         }
 
-        // Update scores
         function updateScores() {
             currentScoreElement.textContent = currentScore;
             if (currentScore > bestScore) {
@@ -110,32 +101,18 @@
             }
         }
 
-        // Add click listeners to tiles
-        tiles.forEach((tile) => {
-            tile.addEventListener('click', () => {
-                if (!isPlayerTurn) return; // Ignore clicks during playback
-
-                // Register the clicked tile ID
-                userSequence.push(tile.id);
-
-                // Compare the current user input to the sequence
-                const currentIndex = userSequence.length - 1;
-                if (userSequence[currentIndex] !== sequence[currentIndex]) {
-                    resetGame();
-                    return;
-                }
-
-                // If the user completes the sequence, start the next round
-                if (userSequence.length === sequence.length) {
-                    currentScore++;
-                    updateScores();
-                    isPlayerTurn = false; // Temporarily disable input
-                    setTimeout(nextRound, 1000); // Start the next round after 1 second
-                }
-            });
+        submitBtn.addEventListener('click', () => {
+            const userGuess = userInput.value;
+            if (userGuess === sequence) {
+                currentScore++;
+                updateScores();
+                nextRound();
+            } else {
+                resetGame();
+            }
         });
 
-        // Start the game
+        
         nextRound();
     </script>
 </body>
